@@ -1151,31 +1151,39 @@
 
         function viewCheckedInDetail(reportId) {
     const report = AppState.reports.find(r => r.id === reportId);
+    if (!report) return;
     
     // Pre-fill the New Report form with student data
     document.getElementById('reportStudentName').value = report.studentName;
-    document.getElementById('reportGrade').value = report.gradeLevel.includes('9') ? '9th' : 
-                                                     report.gradeLevel.includes('10') ? '10th' : 
-                                                     report.gradeLevel.includes('11') ? '11th' : '12th';
+    
+    // Convert grade: "10th Grade" becomes "10th"
+    let gradeValue = '9th';
+    if (report.gradeLevel.includes('10')) gradeValue = '10th';
+    else if (report.gradeLevel.includes('11')) gradeValue = '11th';
+    else if (report.gradeLevel.includes('12')) gradeValue = '12th';
+    
+    document.getElementById('reportGrade').value = gradeValue;
     document.getElementById('reportSport').value = report.sport;
     document.getElementById('reportInjuryDesc').value = report.injuryDescription;
     
-    // Clear other fields so trainer fills them in
+    // Clear trainer assessment fields
     document.getElementById('reportSeverity').value = 5;
     document.getElementById('severityLabel').textContent = '5/10';
     document.getElementById('reportRecommendation').value = '';
     document.getElementById('referredNo').checked = true;
     document.getElementById('reportNotes').value = '';
     
-    // Mark the original checked-in report as reviewed
+    // Update slider appearance
+    const percent = ((5 - 1) / 9) * 100;
+    document.getElementById('reportSeverity').style.background = 
+        `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${percent}%, var(--color-border) ${percent}%, var(--color-border) 100%)`;
+    
+    // Mark as reviewed and open form
     AppState.updateReport(reportId, { status: 'reviewed' });
-    
-    // Switch to New Report form
     showScreen('newReportScreen');
-    
-    // Focus on severity field (next field to fill)
-    document.getElementById('reportSeverity').focus();
+    window.scrollTo(0, 0);
 }
+
 
         function convertToFullReport(reportId) {
             const report = AppState.reports.find(r => r.id === reportId);
