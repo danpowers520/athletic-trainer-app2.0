@@ -1117,6 +1117,7 @@
 
         // Checked In Students
         function loadCheckedInStudents() {
+            AppState.loadFromStorage();
             const searchInput = document.getElementById('checkedInSearch');
             const container = document.getElementById('checkedInList');
 
