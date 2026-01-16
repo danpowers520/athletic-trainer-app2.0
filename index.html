@@ -4,28 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Athletic Trainer - Trainer Dashboard</title>
-    <script src="https://injury-tracker-35ef3-default-rtdb.firebaseio.com/"></script>
-    <script>
-    import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCqadXIkM79Eo2Cjx0BUnX_ZMe75MkZY3M",
-  authDomain: "injury-tracker-35ef3.firebaseapp.com",
-  projectId: "injury-tracker-35ef3",
-  storageBucket: "injury-tracker-35ef3.firebasestorage.app",
-  messagingSenderId: "347658887065",
-  appId: "1:347658887065:web:55500325fb2729e503fd08",
-  measurementId: "G-26CVRYB7X1"
-};<script>
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
     <style>
         :root {
             --color-primary: #2563eb;
@@ -816,84 +794,112 @@ const analytics = getAnalytics(app);
 
     <script>
         const AppState = {
-    reports: [],
-    
-    // Load all reports from Firebase
-    loadFromStorage() {
-        return new Promise((resolve) => {
-            if (!firebaseReady) {
-                console.log('Firebase not ready yet, using local data');
-                resolve();
-                return;
-            }
-            
-            db.ref('reports').once('value', (snapshot) => {
-                this.reports = snapshot.val() || [];
-                console.log('✅ Loaded from Firebase:', this.reports.length, 'reports');
-                resolve();
-            });
-        });
-    },
-    
-    // Save all reports to Firebase
-    saveToStorage() {
-        if (!firebaseReady) {
-            console.log('Firebase not ready, saving locally only');
-            return;
-        }
-        
-        db.ref('reports').set(this.reports, (error) => {
-            if (error) {
-                console.error('Firebase save error:', error);
-            } else {
-                console.log('✅ Saved to Firebase');
-            }
-        });
-    },
-    
-    // Add new report
-    addReport(report) {
-        report.id = Date.now().toString();
-        report.createdAt = new Date().toISOString();
-        this.reports.push(report);
-        this.saveToStorage();
-        return report.id;
-    },
-    
-    // Update existing report
-    updateReport(reportId, updates) {
-        const report = this.reports.find(r => r.id === reportId);
-        if (report) {
-            Object.assign(report, updates);
-            report.updatedAt = new Date().toISOString();
-            this.saveToStorage();
-            return true;
-        }
-        return false;
-    },
-    
-    // Delete report
-    deleteReport(reportId) {
-        const index = this.reports.findIndex(r => r.id === reportId);
-        if (index !== -1) {
-            this.reports.splice(index, 1);
-            this.saveToStorage();
-            return true;
-        }
-        return false;
-    },
-    
-    // Get report by ID
-    getReport(reportId) {
-        return this.reports.find(r => r.id === reportId);
-    },
-    
-    // Filter reports
-    getReportsByStatus(status) {
-        return this.reports.filter(r => r.status === status);
-    }
-};
+            currentScreen: 'trainerMenuScreen',
+            currentReport: null,
+            reports: [],
+            injuries: [],
+            trainerId: 877589,
 
+            init: function() {
+                this.loadFromStorage();
+                this.loadInjuryDatabase();
+                this.loadInjuriesFromStorage();
+            },
+
+            loadFromStorage: function() {
+                const reportsData = localStorage.getItem(`trainerAppReports${this.trainerId}`);
+                this.reports = reportsData ? JSON.parse(reportsData) : [];
+            },
+
+            saveToStorage: function() {
+                localStorage.setItem(`trainerAppReports${this.trainerId}`, JSON.stringify(this.reports));
+            },
+
+            loadInjuryDatabase: function() {
+                this.injuries = [
+                    { id: 1, name: 'Ankle sprain (mild/moderate)', description: 'Stretching or tearing of ankle ligaments', exercises: ['Ankle alphabet - trace letters with your foot', 'Calf raises - rise up on toes, hold 2 seconds', 'Single leg balance - stand on one leg for 30 seconds'], stretches: ['Gastrocnemius stretch - bend one knee, straighten the other', 'Soleus stretch - both knees bent, lean forward', 'Dorsiflexion - pull toes toward shins'] },
+                    { id: 2, name: 'Muscle strain (general)', description: 'General muscle strain or pull', exercises: ['Gentle stretching', 'Light resistance work', 'Progressive strengthening exercises'], stretches: ['Full body stretching routine', 'Foam rolling', 'Static stretches'] },
+                    { id: 3, name: 'Groin strain', description: 'Strain to the inner thigh and groin muscles', exercises: ['Adductor strengthening', 'Hip mobility work', 'Core stability exercises'], stretches: ['Butterfly stretch', 'Adductor stretch', 'Hip flexor stretch'] },
+                    { id: 4, name: 'Calf strain', description: 'Injury to the calf muscle', exercises: ['Calf raises', 'Toe walking', 'Heel walks'], stretches: ['Downward dog', 'Wall calf stretch', 'Towel calf stretch'] },
+                    { id: 5, name: 'Hip flexor strain', description: 'Strain to the muscles that flex the hip', exercises: ['Quadriceps strengthening', 'Glute activation', 'Hip flexor strengthening'], stretches: ['Low lunge stretch', 'Lying hip flexor stretch', 'Couch stretch'] },
+                    { id: 6, name: 'Shin splints (medial tibial stress syndrome)', description: 'Pain along the shin bone from repetitive stress', exercises: ['Toe raises', 'Shin strengthening', 'Calf stretches'], stretches: ['Calf stretching', 'Anterior tibialis stretch', 'Full leg stretching'] },
+                    { id: 7, name: 'Runners knee (patellofemoral pain syndrome)', description: 'Pain around the kneecap from overuse', exercises: ['Quad strengthening', 'Glute activation', 'Hamstring work'], stretches: ['Quadriceps stretch', 'IT band stretch', 'Hamstring stretch'] },
+                    { id: 8, name: 'IT band syndrome', description: 'Inflammation of the iliotibial band', exercises: ['Glute strengthening', 'Hip abduction work', 'Core stability'], stretches: ['IT band stretch', 'Pigeon pose', 'Cross-leg stretch'] },
+                    { id: 9, name: 'Plantar fasciitis', description: 'Inflammation of the tissue on the bottom of the foot', exercises: ['Calf raises', 'Foot intrinsic strengthening', 'Arch support work'], stretches: ['Plantar fascia stretch', 'Calf stretch', 'Towel stretch under foot'] },
+                    { id: 10, name: 'Achilles tendinitis (non-rupture)', description: 'Inflammation of the Achilles tendon', exercises: ['Eccentric calf exercises', 'Gentle calf raises', 'Isometric holds'], stretches: ['Calf stretch', 'Soleus stretch', 'Downward dog'] },
+                    { id: 11, name: 'Tennis elbow (lateral epicondylitis)', description: 'Inflammation on the outside of the elbow', exercises: ['Wrist curls', 'Eccentric exercises', 'Isometric holds'], stretches: ['Wrist extensor stretch', 'Prayer stretch', 'Reverse prayer stretch'] },
+                    { id: 12, name: 'Golfers elbow (medial epicondylitis)', description: 'Inflammation on the inside of the elbow', exercises: ['Wrist flexor strengthening', 'Forearm work', 'Grip strengthening'], stretches: ['Wrist flexor stretch', 'Forearm stretch', 'Cross-body stretch'] },
+                    { id: 13, name: 'Rotator cuff tendinitis/impingement (non-tear)', description: 'Inflammation or compression of the rotator cuff', exercises: ['Band pull-aparts', 'External rotation work', 'Scapular stabilization'], stretches: ['Cross-body shoulder stretch', 'Doorway stretch', 'Sleeper stretch'] },
+                    { id: 14, name: 'Shoulder bursitis', description: 'Inflammation of the fluid sacs in the shoulder', exercises: ['Pendulum swings', 'Isometric holds', 'Gentle rotations'], stretches: ['Shoulder rolls', 'Cross-body stretch', 'Sleeper stretch'] },
+                    { id: 15, name: 'Lower back strain', description: 'Muscle strain in the lower back', exercises: ['Core strengthening', 'Glute activation', 'Back extensions'], stretches: ['Childs pose', 'Piriformis stretch', 'Cat-cow stretch'] },
+                    { id: 16, name: 'Neck strain', description: 'Muscle strain in the neck', exercises: ['Neck isometric exercises', 'Shoulder rolls', 'Upper back strengthening'], stretches: ['Neck stretches', 'Shoulder stretches', 'Chest stretches'] },
+                    { id: 17, name: 'Wrist sprain (mild)', description: 'Stretching or tearing of wrist ligaments', exercises: ['Wrist circles', 'Grip strengthening', 'Forearm exercises'], stretches: ['Wrist flexor stretch', 'Wrist extensor stretch', 'Forearm stretch'] },
+                    { id: 18, name: 'Finger sprain (jammed finger)', description: 'Injury to finger joints or ligaments', exercises: ['Finger strengthening', 'Gentle finger movements', 'Hand grip work'], stretches: ['Finger stretches', 'Hand stretches', 'Forearm stretches'] },
+                    { id: 19, name: 'Contusions (bruises)', description: 'Bruising from blunt force trauma', exercises: ['Gentle range of motion', 'Light activity as tolerated', 'Progressive strengthening'], stretches: ['Gentle stretching', 'Light mobility work', 'Range of motion exercises'] }
+                ];
+            },
+
+            addReport: function(reportData) {
+                const report = {
+                    id: Date.now().toString(),
+                    ...reportData,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: null
+                };
+                this.reports.push(report);
+                this.saveToStorage();
+                return report;
+            },
+
+            updateReport: function(reportId, updates) {
+                const report = this.reports.find(r => r.id === reportId);
+                if (report) {
+                    Object.assign(report, updates, { updatedAt: new Date().toISOString() });
+                    this.saveToStorage();
+                    return report;
+                }
+            },
+
+            getReportsByStudent: function(studentName) {
+                return this.reports.filter(r => r.studentName.toLowerCase().includes(studentName.toLowerCase()));
+            },
+
+            searchInjuries: function(query) {
+                return this.injuries.filter(injury =>
+                    injury.name.toLowerCase().includes(query.toLowerCase()) ||
+                    injury.description.toLowerCase().includes(query.toLowerCase())
+                );
+            },
+
+            addInjury: function(injuryData) {
+                const newInjury = {
+                    id: Date.now().toString(),
+                    name: injuryData.name,
+                    description: injuryData.description,
+                    exercises: injuryData.exercises,
+                    stretches: injuryData.stretches
+                };
+                this.injuries.push(newInjury);
+                this.saveInjuriesToStorage();
+            },
+
+            loadInjuriesFromStorage: function() {
+                const customInjuries = localStorage.getItem(`trainerAppCustomInjuries${this.trainerId}`);
+                if (customInjuries) {
+                    const parsed = JSON.parse(customInjuries);
+                    this.injuries = [...this.injuries, ...parsed];
+                }
+            },
+
+            saveInjuriesToStorage: function() {
+                const customInjuries = this.injuries.filter(i => i.id.length > 5);
+                localStorage.setItem(`trainerAppCustomInjuries${this.trainerId}`, JSON.stringify(customInjuries));
+            },
+
+            getCheckedInReports: function() {
+                return this.reports.filter(r => r.source === 'student_checkin' && r.status === 'new');
+            }
+        };
 
         function formatDate(isoString) {
             const date = new Date(isoString);
@@ -1110,8 +1116,8 @@ const analytics = getAnalytics(app);
         }
 
         // Checked In Students
-        async function loadCheckedInStudents() {
-            await AppState.loadFromStorage();
+        function loadCheckedInStudents() {
+            AppState.loadFromStorage();
             const searchInput = document.getElementById('checkedInSearch');
             const container = document.getElementById('checkedInList');
 
@@ -1442,28 +1448,10 @@ const analytics = getAnalytics(app);
         document.getElementById('backBtn').addEventListener('click', goBack);
 
         // Initialize app
-        document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Loading app...');
-    
-    // Wait for Firebase to be ready
-    let attempts = 0;
-    while (!firebaseReady && attempts < 30) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-    }
-    
-    if (!firebaseReady) {
-        console.warn('Firebase took too long to connect, continuing anyway...');
-    }
-    
-    // Load existing reports from Firebase
-    await AppState.loadFromStorage();
-    
-    // Initialize UI
-    showScreen('checkinScreen');
-    console.log('✅ App ready');
-});
-
+        document.addEventListener('DOMContentLoaded', function() {
+            AppState.init();
+            showScreen('trainerMenuScreen');
+        });
     </script>
 </body>
 </html>
