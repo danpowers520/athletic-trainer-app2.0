@@ -3,45 +3,1492 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Note Taking App</title>
+    <title>Athletic Trainer - Trainer Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        .note { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        .timestamp { font-size: 0.8em; color: #666; }
-    </style>
-</head>
-<body>
-    <h1>Note Taking App</h1>
-    <div id="noteHistoryDisplay"></div>
-    <input type="text" id="noteInput" placeholder="Add a new note..." />
-    <button id="addNoteButton">Add Note</button>
-
-    <script>
-        const noteHistory = [];
-
-        function renderNoteHistory() {
-            const display = document.getElementById('noteHistoryDisplay');
-            display.innerHTML = '';  // Clear current display
-            noteHistory.forEach(noteEntry => {
-                const noteDiv = document.createElement('div');
-                noteDiv.className = 'note';
-                noteDiv.innerHTML = `<span class='timestamp'>[${noteEntry.timestamp}]</span> ${noteEntry.note}`;
-                display.appendChild(noteDiv);
-            });
+        :root {
+            --color-primary: #2563eb;
+            --color-primary-dark: #1d4ed8;
+            --color-success: #059669;
+            --color-danger: #dc2626;
+            --color-warning: #f59e0b;
+            --color-bg: #f9fafb;
+            --color-surface: #ffffff;
+            --color-border: #e5e7eb;
+            --color-text: #111827;
+            --color-text-secondary: #6b7280;
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 0.75rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
         }
 
-        function addNote() {
-            const input = document.getElementById('noteInput');
-            if (input.value) {
-                const now = new Date();
-                const timestamp = now.toISOString().substr(0, 19).replace('T', ' ');
-                noteHistory.push({ note: input.value, timestamp: timestamp });
-                input.value = '';  // Clear input
-                renderNoteHistory();
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 100%;
+            background-color: var(--color-bg);
+        }
+
+        .header {
+            background-color: var(--color-primary);
+            color: white;
+            padding: var(--spacing-lg);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .back-button.hidden {
+            display: none;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: var(--spacing-lg);
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.2s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
             }
         }
 
-        document.getElementById('addNoteButton').addEventListener('click', addNote);
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            width: 100%;
+        }
+
+        .btn {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: var(--color-surface);
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--color-bg);
+        }
+
+        .btn-success {
+            background-color: var(--color-success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #047857;
+        }
+
+        .btn-danger {
+            background-color: var(--color-danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        .btn-small {
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: 0.875rem;
+        }
+
+        /* TRAINER MENU */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .menu-item {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-item h3 {
+            margin-bottom: var(--spacing-md);
+            color: var(--color-primary);
+            font-size: 1.25rem;
+        }
+
+        .menu-item p {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+
+
+        .menu-item:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .menu-item h3 {
+            margin-bottom: var(--spacing-sm);
+            color: var(--color-primary);
+        }
+
+        .menu-item p {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+
+        /* FORMS */
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        .form-group label .required {
+            color: var(--color-danger);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--color-text);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-group.error input,
+        .form-group.error select,
+        .form-group.error textarea {
+            border-color: var(--color-danger);
+        }
+
+        .form-group .error-message {
+            color: var(--color-danger);
+            font-size: 0.875rem;
+            margin-top: var(--spacing-xs);
+            display: none;
+        }
+
+        .form-group.error .error-message {
+            display: block;
+        }
+
+        /* SEVERITY SCALE */
+        .severity-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(
+                to right,
+                var(--color-primary) 0%,
+                var(--color-primary) 50%,
+                var(--color-border) 50%,
+                var(--color-border) 100%
+            );
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="range"]::-moz-range-track {
+            background: transparent;
+            border: none;
+        }
+
+        .severity-label {
+            min-width: 80px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        /* TOGGLE CHECKBOX */
+        .toggle-group {
+            display: flex;
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-md);
+        }
+
+        .toggle-option {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            cursor: pointer;
+        }
+
+        .toggle-option input[type="radio"] {
+            cursor: pointer;
+        }
+
+        /* LISTS */
+        .list {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .list-item {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item:hover {
+            background-color: var(--color-bg);
+        }
+
+        .list-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .list-item-title {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .list-item-subtitle {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background-color: rgba(5, 150, 105, 0.1);
+            color: var(--color-success);
+        }
+
+        .badge-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--color-warning);
+        }
+
+        .badge-danger {
+            background-color: rgba(220, 38, 38, 0.1);
+            color: var(--color-danger);
+        }
+
+        .badge-info {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--color-primary);
+        }
+
+        /* SEARCH */
+        .search-bar {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl) var(--spacing-lg);
+            color: var(--color-text-secondary);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: var(--spacing-md);
+            opacity: 0.5;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s ease-in;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: var(--spacing-lg);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+        }
+
+        /* VALIDATION SUMMARY */
+        .validation-summary {
+            background-color: rgba(220, 38, 38, 0.1);
+            border: 1px solid var(--color-danger);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            color: var(--color-danger);
+            display: none;
+        }
+
+        .validation-summary.show {
+            display: block;
+        }
+
+        .validation-summary ul {
+            margin: 0;
+            padding-left: var(--spacing-lg);
+        }
+
+        /* REPORT DETAIL */
+        .report-detail {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+        }
+
+        .report-section {
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .report-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .report-section-title {
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-md);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .report-field {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .report-field-label {
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .report-field-value {
+            color: var(--color-text);
+            margin-top: var(--spacing-xs);
+        }
+
+        /* STATUS */
+        .status {
+            display: inline-block;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-waiting {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--color-warning);
+        }
+
+        .status-in-progress {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--color-primary);
+        }
+
+        .status-completed {
+            background-color: rgba(5, 150, 105, 0.1);
+            color: var(--color-success);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: var(--spacing-md);
+            }
+
+            .header {
+                padding: var(--spacing-md);
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                width: 100%;
+            }
+
+            .modal-content {
+                max-width: 95%;
+                max-height: 95vh;
+            }
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .header,
+            .back-button,
+            .btn {
+                display: none;
+            }
+
+            .report-detail {
+                border: none;
+                box-shadow: none;
+            }
+        }
+
+        h2 {
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1 id="header-title">Athletic Trainer</h1>
+            <button class="back-button hidden" id="backBtn" onclick="goBack()">Back</button>
+        </div>
+
+        <div class="main-content">
+            <!-- TRAINER MENU SCREEN -->
+            <div id="trainerMenuScreen" class="screen active">
+                <h2 style="margin-bottom: var(--spacing-xl); text-align: center;">Trainer Menu</h2>
+                <div class="menu-grid">
+                    <div class="menu-item" id="newReportBtn" onclick="showScreen('newReportScreen')">
+                        <h3>New Report</h3>
+                        <p>Create a fresh injury report</p>
+                    </div>
+                    <div class="menu-item" id="updateReportBtn" onclick="loadUpdateReportList(); showScreen('updateReportScreen')">
+                        <h3>Update Report</h3>
+                        <p>Edit notes on existing reports</p>
+                    </div>
+                    <div class="menu-item" id="reportDatabaseBtn" onclick="loadReportDatabase(); showScreen('reportDatabaseScreen')">
+                        <h3>Report Database</h3>
+                        <p>Browse all reports chronologically</p>
+                    </div>
+                    <div class="menu-item" id="checkedInBtn" onclick="loadCheckedInStudents(); showScreen('checkedInScreen')">
+                        <h3>Checked In Students</h3>
+                        <p>Review student submissions</p>
+                    </div>
+                    <div class="menu-item" id="playerSearchBtn" onclick="showScreen('playerSearchScreen')">
+                        <h3>Player Search</h3>
+                        <p>Find all reports by student</p>
+                    </div>
+                    <div class="menu-item" id="injurySearchBtn" onclick="showScreen('injurySearchScreen')">
+                        <h3>Injury Search</h3>
+                        <p>Look up exercises and stretches</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW REPORT SCREEN -->
+            <div id="newReportScreen" class="screen">
+                <h2 style="margin-bottom: var(--spacing-lg);">Create New Report</h2>
+                <div class="validation-summary" id="newReportValidation"></div>
+                <form id="newReportForm">
+                    <div class="form-group">
+                        <label>Student Name <span class="required">*</span></label>
+                        <input type="text" id="reportStudentName" placeholder="Enter students full name" required>
+                        <span class="error-message">Student name is required</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Grade Level <span class="required">*</span></label>
+                        <select id="reportGrade" required>
+                            <option value="">-- Select Grade --</option>
+                            <option value="9th">9th Grade</option>
+                            <option value="10th">10th Grade</option>
+                            <option value="11th">11th Grade</option>
+                            <option value="12th">12th Grade</option>
+                        </select>
+                        <span class="error-message">Grade level is required</span>
+                    </div>
+
+                    <div class="form-group">
+    <label>Sport <span class="required">*</span></label>
+    <select id="reportSport" required>
+        <option value="" disabled selected hidden>Choose a sport</option>
+        <option value="Football">Football</option>
+        <option value="Basketball">Basketball</option>
+        <option value="Soccer">Soccer</option>
+        <option value="Volleyball">Volleyball</option>
+        <option value="Baseball">Baseball</option>
+        <option value="Softball">Softball</option>
+        <option value="Track & Field">Track &amp; Field</option>
+        <option value="Cross Country">Cross Country</option>
+        <option value="Tennis">Tennis</option>
+        <option value="Swimming">Swimming</option>
+        <option value="Wrestling">Wrestling</option>
+        <option value="Other">Other (please note sport in decription)</option>
+    </select>
+    <span class="error-message">Sport is required</span>
+</div>
+
+
+                    <div class="form-group">
+                        <label>Injury Description <span class="required">*</span></label>
+                        <textarea id="reportInjuryDesc" placeholder="Describe the injury in detail" required></textarea>
+                        <span class="error-message">Injury description is required</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Severity Level <span class="required">*</span></label>
+                        <div class="severity-container">
+                            <input type="range" id="reportSeverity" min="1" max="10" value="5" required style="flex: 1;">
+                            <span class="severity-label" id="severityLabel">5/10</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Trainer Recommendation <span class="required">*</span></label>
+                        <textarea id="reportRecommendation" placeholder="What is your recommendation?" required></textarea>
+                        <span class="error-message">Recommendation is required</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Referred for Medical Attention? <span class="required">*</span></label>
+                        <div class="toggle-group" style="flex-direction: column; gap: var(--spacing-lg); margin-top: var(--spacing-md);">
+                            <div class="toggle-option" style="background-color: var(--color-surface); padding: var(--spacing-md) var(--spacing-lg); border-radius: var(--radius-md); border: 2px solid var(--color-border); cursor: pointer; display: flex; align-items: center; gap: var(--spacing-sm);">
+                                <input type="radio" id="referredYes" name="referred" value="yes" style="cursor: pointer; width: 18px; height: 18px; flex-shrink: 0;">
+                                <label for="referredYes" style="margin: 0; font-weight: 500; cursor: pointer;">
+                                    <strong>Yes</strong> - Referred to Medical Professional
+                                </label>
+                            </div>
+                            <div class="toggle-option" style="background-color: var(--color-surface); padding: var(--spacing-md) var(--spacing-lg); border-radius: var(--radius-md); border: 2px solid var(--color-border); cursor: pointer; display: flex; align-items: center; gap: var(--spacing-sm);">
+                                <input type="radio" id="referredNo" name="referred" value="no" checked style="cursor: pointer; width: 18px; height: 18px; flex-shrink: 0;">
+                                <label for="referredNo" style="margin: 0; font-weight: 500; cursor: pointer;">
+                                    <strong>No</strong> - No Medical Referral Needed
+                                </label>
+                            </div>
+                        </div>
+                        <span class="error-message">Please select an option</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Additional Notes</label>
+                        <textarea id="reportNotes" placeholder="Any additional notes for future reference"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-xl);">
+                        <button type="submit" class="btn btn-success" style="flex: 1;">Save Report</button>
+                        <button type="button" class="btn btn-secondary" id="cancelNewReport" style="flex: 1;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- UPDATE REPORT SCREEN -->
+            <div id="updateReportScreen" class="screen">
+                <h2 style="margin-bottom: var(--spacing-lg);">Update Report</h2>
+                <div class="search-bar">
+                    <input type="text" id="updateReportSearch" placeholder="Search by student name...">
+                </div>
+                <div id="updateReportList" class="list"></div>
+            </div>
+
+            <!-- REPORT DATABASE SCREEN -->
+            <div id="reportDatabaseScreen" class="screen">
+                <h2 style="margin-bottom: var(--spacing-lg);">Report Database</h2>
+                <div style="margin-bottom: var(--spacing-lg);">
+                    <label style="margin-right: var(--spacing-md);">Sort</label>
+                    <select id="databaseSort" style="width: auto; padding: var(--spacing-sm) var(--spacing-md);">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                    </select>
+                </div>
+                <div id="reportDatabaseList" class="list"></div>
+            </div>
+
+            <!-- CHECKED IN STUDENTS SCREEN -->
+            <div id="checkedInScreen" class="screen">
+                <h2 style="margin-bottom: var(--spacing-lg);">Checked In Students</h2>
+                <div class="search-bar">
+                    <input type="text" id="checkedInSearch" placeholder="Search by student name...">
+                </div>
+                <div id="checkedInList" class="list"></div>
+            </div>
+
+            <!-- PLAYER SEARCH SCREEN -->
+            <div id="playerSearchScreen" class="screen">
+                <h2 style="margin-bottom: var(--spacing-lg);">Player Search</h2>
+                <div class="search-bar">
+                    <input type="text" id="playerSearchInput" placeholder="Search by student name...">
+                </div>
+                <div id="playerSearchResults"></div>
+            </div>
+
+            <!-- INJURY SEARCH SCREEN -->
+            <div id="injurySearchScreen" class="screen">
+                <h2 style="margin-bottom: var(--spacing-lg);">Injury Search</h2>
+                <div class="search-bar">
+                    <input type="text" id="injurySearchInput" placeholder="Search for common injuries...">
+                </div>
+                <div style="margin-bottom: var(--spacing-lg);">
+                    <button class="btn btn-primary" id="addInjuryBtn" style="width: 100%;">Add New Injury</button>
+                </div>
+                <div id="injurySearchResults"></div>
+            </div>
+
+            <!-- REPORT DETAIL SCREEN -->
+            <div id="reportDetailScreen" class="screen">
+                <div id="reportDetailContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AppState = {
+            currentScreen: 'trainerMenuScreen',
+            currentReport: null,
+            reports: [],
+            injuries: [],
+            trainerId: 877589,
+
+            init: function() {
+                this.loadFromStorage();
+                this.loadInjuryDatabase();
+                this.loadInjuriesFromStorage();
+            },
+
+            loadFromStorage: function() {
+                const reportsData = localStorage.getItem(`trainerAppReports${this.trainerId}`);
+                this.reports = reportsData ? JSON.parse(reportsData) : [];
+            },
+
+            saveToStorage: function() {
+                localStorage.setItem(`trainerAppReports${this.trainerId}`, JSON.stringify(this.reports));
+            },
+
+            loadInjuryDatabase: function() {
+                this.injuries = [
+                    { id: 1, name: 'Ankle sprain (mild/moderate)', description: 'Stretching or tearing of ankle ligaments', exercises: ['Ankle alphabet - trace letters with your foot', 'Calf raises - rise up on toes, hold 2 seconds', 'Single leg balance - stand on one leg for 30 seconds'], stretches: ['Gastrocnemius stretch - bend one knee, straighten the other', 'Soleus stretch - both knees bent, lean forward', 'Dorsiflexion - pull toes toward shins'] },
+                    { id: 2, name: 'Muscle strain (general)', description: 'General muscle strain or pull', exercises: ['Gentle stretching', 'Light resistance work', 'Progressive strengthening exercises'], stretches: ['Full body stretching routine', 'Foam rolling', 'Static stretches'] },
+                    { id: 3, name: 'Groin strain', description: 'Strain to the inner thigh and groin muscles', exercises: ['Adductor strengthening', 'Hip mobility work', 'Core stability exercises'], stretches: ['Butterfly stretch', 'Adductor stretch', 'Hip flexor stretch'] },
+                    { id: 4, name: 'Calf strain', description: 'Injury to the calf muscle', exercises: ['Calf raises', 'Toe walking', 'Heel walks'], stretches: ['Downward dog', 'Wall calf stretch', 'Towel calf stretch'] },
+                    { id: 5, name: 'Hip flexor strain', description: 'Strain to the muscles that flex the hip', exercises: ['Quadriceps strengthening', 'Glute activation', 'Hip flexor strengthening'], stretches: ['Low lunge stretch', 'Lying hip flexor stretch', 'Couch stretch'] },
+                    { id: 6, name: 'Shin splints (medial tibial stress syndrome)', description: 'Pain along the shin bone from repetitive stress', exercises: ['Toe raises', 'Shin strengthening', 'Calf stretches'], stretches: ['Calf stretching', 'Anterior tibialis stretch', 'Full leg stretching'] },
+                    { id: 7, name: 'Runners knee (patellofemoral pain syndrome)', description: 'Pain around the kneecap from overuse', exercises: ['Quad strengthening', 'Glute activation', 'Hamstring work'], stretches: ['Quadriceps stretch', 'IT band stretch', 'Hamstring stretch'] },
+                    { id: 8, name: 'IT band syndrome', description: 'Inflammation of the iliotibial band', exercises: ['Glute strengthening', 'Hip abduction work', 'Core stability'], stretches: ['IT band stretch', 'Pigeon pose', 'Cross-leg stretch'] },
+                    { id: 9, name: 'Plantar fasciitis', description: 'Inflammation of the tissue on the bottom of the foot', exercises: ['Calf raises', 'Foot intrinsic strengthening', 'Arch support work'], stretches: ['Plantar fascia stretch', 'Calf stretch', 'Towel stretch under foot'] },
+                    { id: 10, name: 'Achilles tendinitis (non-rupture)', description: 'Inflammation of the Achilles tendon', exercises: ['Eccentric calf exercises', 'Gentle calf raises', 'Isometric holds'], stretches: ['Calf stretch', 'Soleus stretch', 'Downward dog'] },
+                    { id: 11, name: 'Tennis elbow (lateral epicondylitis)', description: 'Inflammation on the outside of the elbow', exercises: ['Wrist curls', 'Eccentric exercises', 'Isometric holds'], stretches: ['Wrist extensor stretch', 'Prayer stretch', 'Reverse prayer stretch'] },
+                    { id: 12, name: 'Golfers elbow (medial epicondylitis)', description: 'Inflammation on the inside of the elbow', exercises: ['Wrist flexor strengthening', 'Forearm work', 'Grip strengthening'], stretches: ['Wrist flexor stretch', 'Forearm stretch', 'Cross-body stretch'] },
+                    { id: 13, name: 'Rotator cuff tendinitis/impingement (non-tear)', description: 'Inflammation or compression of the rotator cuff', exercises: ['Band pull-aparts', 'External rotation work', 'Scapular stabilization'], stretches: ['Cross-body shoulder stretch', 'Doorway stretch', 'Sleeper stretch'] },
+                    { id: 14, name: 'Shoulder bursitis', description: 'Inflammation of the fluid sacs in the shoulder', exercises: ['Pendulum swings', 'Isometric holds', 'Gentle rotations'], stretches: ['Shoulder rolls', 'Cross-body stretch', 'Sleeper stretch'] },
+                    { id: 15, name: 'Lower back strain', description: 'Muscle strain in the lower back', exercises: ['Core strengthening', 'Glute activation', 'Back extensions'], stretches: ['Childs pose', 'Piriformis stretch', 'Cat-cow stretch'] },
+                    { id: 16, name: 'Neck strain', description: 'Muscle strain in the neck', exercises: ['Neck isometric exercises', 'Shoulder rolls', 'Upper back strengthening'], stretches: ['Neck stretches', 'Shoulder stretches', 'Chest stretches'] },
+                    { id: 17, name: 'Wrist sprain (mild)', description: 'Stretching or tearing of wrist ligaments', exercises: ['Wrist circles', 'Grip strengthening', 'Forearm exercises'], stretches: ['Wrist flexor stretch', 'Wrist extensor stretch', 'Forearm stretch'] },
+                    { id: 18, name: 'Finger sprain (jammed finger)', description: 'Injury to finger joints or ligaments', exercises: ['Finger strengthening', 'Gentle finger movements', 'Hand grip work'], stretches: ['Finger stretches', 'Hand stretches', 'Forearm stretches'] },
+                    { id: 19, name: 'Contusions (bruises)', description: 'Bruising from blunt force trauma', exercises: ['Gentle range of motion', 'Light activity as tolerated', 'Progressive strengthening'], stretches: ['Gentle stretching', 'Light mobility work', 'Range of motion exercises'] }
+                ];
+            },
+
+            addReport: function(reportData) {
+                const report = {
+                    id: Date.now().toString(),
+                    ...reportData,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: null
+                };
+                this.reports.push(report);
+                this.saveToStorage();
+                return report;
+            },
+
+            updateReport: function(reportId, updates) {
+                const report = this.reports.find(r => r.id === reportId);
+                if (report) {
+                    Object.assign(report, updates, { updatedAt: new Date().toISOString() });
+                    this.saveToStorage();
+                    return report;
+                }
+            },
+
+            getReportsByStudent: function(studentName) {
+                return this.reports.filter(r => r.studentName.toLowerCase().includes(studentName.toLowerCase()));
+            },
+
+            searchInjuries: function(query) {
+                return this.injuries.filter(injury =>
+                    injury.name.toLowerCase().includes(query.toLowerCase()) ||
+                    injury.description.toLowerCase().includes(query.toLowerCase())
+                );
+            },
+
+            addInjury: function(injuryData) {
+                const newInjury = {
+                    id: Date.now().toString(),
+                    name: injuryData.name,
+                    description: injuryData.description,
+                    exercises: injuryData.exercises,
+                    stretches: injuryData.stretches
+                };
+                this.injuries.push(newInjury);
+                this.saveInjuriesToStorage();
+            },
+
+            loadInjuriesFromStorage: function() {
+                const customInjuries = localStorage.getItem(`trainerAppCustomInjuries${this.trainerId}`);
+                if (customInjuries) {
+                    const parsed = JSON.parse(customInjuries);
+                    this.injuries = [...this.injuries, ...parsed];
+                }
+            },
+
+            saveInjuriesToStorage: function() {
+                const customInjuries = this.injuries.filter(i => i.id.length > 5);
+                localStorage.setItem(`trainerAppCustomInjuries${this.trainerId}`, JSON.stringify(customInjuries));
+            },
+
+            getCheckedInReports: function() {
+                return this.reports.filter(r => r.source === 'student_checkin' && r.status === 'new');
+            }
+        };
+
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function validateForm(formId) {
+            const form = document.getElementById(formId);
+            let isValid = true;
+            const errors = [];
+
+            form.querySelectorAll('[required]').forEach(field => {
+                const value = field.value?.trim();
+                const formGroup = field.closest('.form-group');
+
+                if (!value && (field.type !== 'radio' || !form.querySelector(`input[name="${field.name}"]`).checked)) {
+                    isValid = false;
+                    formGroup?.classList.add('error');
+                    const label = formGroup?.querySelector('label')?.textContent;
+                    field.id && errors.push(label);
+                } else {
+                    formGroup?.classList.remove('error');
+                }
+            });
+
+            return { isValid, errors };
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+                AppState.currentScreen = screenId;
+                updateHeader();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function updateHeader() {
+            const headerTitle = document.getElementById('header-title');
+            const backBtn = document.getElementById('backBtn');
+            const titles = {
+                'trainerMenuScreen': 'Athletic Trainer',
+                'newReportScreen': 'New Report',
+                'updateReportScreen': 'Update Report',
+                'reportDatabaseScreen': 'Report Database',
+                'checkedInScreen': 'Checked In Students',
+                'playerSearchScreen': 'Player Search',
+                'injurySearchScreen': 'Injury Search',
+                'reportDetailScreen': 'Report Details'
+            };
+
+            headerTitle.textContent = titles[AppState.currentScreen] || 'Athletic Trainer';
+            backBtn.classList.toggle('hidden', AppState.currentScreen === 'trainerMenuScreen');
+        }
+
+        function goBack() {
+            showScreen('trainerMenuScreen');
+        }
+
+        // Event Listeners - Main Menu
+        document.getElementById('newReportBtn').addEventListener('click', function() {
+            document.getElementById('newReportForm').reset();
+            showScreen('newReportScreen');
+        });
+
+        document.getElementById('cancelNewReport').addEventListener('click', function() {
+            showScreen('trainerMenuScreen');
+        });
+
+        // Severity slider update
+        document.getElementById('reportSeverity').addEventListener('input', function(e) {
+            const value = e.target.value;
+            document.getElementById('severityLabel').textContent = `${value}/10`;
+            const percent = ((value - 1) / 9) * 100;
+            e.target.style.background = `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${percent}%, var(--color-border) ${percent}%, var(--color-border) 100%)`;
+        });
+
+        // Initialize slider gradient
+        document.addEventListener('DOMContentLoaded', function() {
+            const slider = document.getElementById('reportSeverity');
+            if (slider) {
+                const value = slider.value;
+                const percent = ((value - 1) / 9) * 100;
+                slider.style.background = `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${percent}%, var(--color-border) ${percent}%, var(--color-border) 100%)`;
+            }
+        });
+
+        // New Report Form Submit
+        document.getElementById('newReportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const { isValid, errors } = validateForm('newReportForm');
+            if (!isValid) {
+                const summary = document.getElementById('newReportValidation');
+                summary.innerHTML = `<strong>Please fix the following errors</strong><ul>${errors.map(err => `<li>${err}</li>`).join('')}</ul>`;
+                summary.classList.add('show');
+                return;
+            }
+
+            const reportData = {
+                studentName: document.getElementById('reportStudentName').value,
+                gradeLevel: document.getElementById('reportGrade').value,
+                sport: document.getElementById('reportSport').value,
+                injuryDescription: document.getElementById('reportInjuryDesc').value,
+                severity: parseInt(document.getElementById('reportSeverity').value),
+                trainerRecommendation: document.getElementById('reportRecommendation').value,
+                referredForMedical: document.querySelector('input[name="referred"]:checked').value === 'yes',
+                trainerNotes: document.getElementById('reportNotes').value,
+                source: 'trainer'
+            };
+
+            AppState.addReport(reportData);
+            alert('Report saved successfully!');
+            showScreen('trainerMenuScreen');
+        });
+
+        // Update Report List
+        function loadUpdateReportList() {
+            const searchInput = document.getElementById('updateReportSearch');
+            const container = document.getElementById('updateReportList');
+
+            const displayReports = () => {
+                const query = searchInput.value.toLowerCase();
+                const filtered = AppState.reports.filter(r => r.studentName.toLowerCase().includes(query));
+
+                if (filtered.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No reports found</p></div>';
+                    return;
+                }
+
+                container.innerHTML = filtered.map(report => `
+                    <div class="list-item" onclick="editReportNotes('${report.id}')">
+                        <div class="list-item-header">
+                            <span class="list-item-title">${report.studentName}</span>
+                        </div>
+                        <div class="list-item-subtitle">
+                            <span><strong>Sport</strong> ${report.sport}</span>
+                            <span><strong>Created</strong> ${formatDate(report.createdAt)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            displayReports();
+            searchInput.addEventListener('input', displayReports);
+        }
+
+        // Edit Report Notes
+        function editReportNotes(reportId) {
+            const report = AppState.reports.find(r => r.id === reportId);
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Update Notes - ${report.studentName}</h3>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()"></button>
+                    </div>
+                    <div class="form-group">
+                        <label>Trainer Notes</label>
+                        <textarea id="editNotesField" style="width: 100%; min-height: 200px; padding: var(--spacing-md); border: 1px solid var(--color-border); border-radius: var(--radius-md);">${report.trainerNotes || ''}</textarea>
+                    </div>
+                    <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                        <button class="btn btn-success" style="flex: 1;" onclick="saveUpdatedNotes('${reportId}')">Save</button>
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="this.closest('.modal').remove()">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function saveUpdatedNotes(reportId) {
+            const newNotes = document.getElementById('editNotesField').value;
+            AppState.updateReport(reportId, { trainerNotes: newNotes });
+            document.querySelector('.modal').remove();
+            alert('Notes updated successfully!');
+        }
+
+        // Report Database
+        function loadReportDatabase() {
+            const sortSelect = document.getElementById('databaseSort');
+            const container = document.getElementById('reportDatabaseList');
+
+            const displayReports = () => {
+                const sorted = [...AppState.reports].sort((a, b) => {
+                    const dateA = new Date(a.createdAt);
+                    const dateB = new Date(b.createdAt);
+                    return sortSelect.value === 'newest' ? dateB - dateA : dateA - dateB;
+                });
+
+                if (sorted.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No reports yet</p></div>';
+                    return;
+                }
+
+                container.innerHTML = sorted.map(report => `
+                    <div class="list-item" onclick="viewReportDetail('${report.id}')">
+                        <div class="list-item-header">
+                            <span class="list-item-title">${report.studentName}</span>
+                            <span class="badge badge-success">Severity ${report.severity}/10</span>
+                        </div>
+                        <div class="list-item-subtitle">
+                            <span><strong>Sport</strong> ${report.sport}</span>
+                            <span><strong>Created</strong> ${formatDate(report.createdAt)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            displayReports();
+            sortSelect.addEventListener('change', displayReports);
+        }
+
+        // Checked In Students
+        function loadCheckedInStudents() {
+            AppState.loadFromStorage();
+            const searchInput = document.getElementById('checkedInSearch');
+            const container = document.getElementById('checkedInList');
+
+            const displayReports = () => {
+                const query = searchInput.value.toLowerCase();
+                const checkedIn = AppState.getCheckedInReports().filter(r => r.studentName.toLowerCase().includes(query));
+
+                if (checkedIn.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No checked in students</p></div>';
+                    return;
+                }
+
+                container.innerHTML = checkedIn.map(report => `
+                    <div class="list-item" onclick="viewCheckedInDetail('${report.id}')">
+                        <div class="list-item-header">
+                            <span class="list-item-title">${report.studentName}</span>
+                            <span class="badge badge-info">NEW</span>
+                        </div>
+                        <div class="list-item-subtitle">
+                            <span><strong>Grade</strong> ${report.gradeLevel}</span>
+                            <span><strong>Sport</strong> ${report.sport}</span>
+                            <span><strong>Submitted</strong> ${formatDate(report.createdAt)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            displayReports();
+            searchInput.addEventListener('input', displayReports);
+        }
+
+        function viewCheckedInDetail(reportId) {
+    const report = AppState.reports.find(r => r.id === reportId);
+    if (!report) return;
+    
+    // Pre-fill the New Report form with student data
+    document.getElementById('reportStudentName').value = report.studentName;
+    
+    // Convert grade: "10th Grade" becomes "10th"
+    let gradeValue = '9th';
+    if (report.gradeLevel.includes('10')) gradeValue = '10th';
+    else if (report.gradeLevel.includes('11')) gradeValue = '11th';
+    else if (report.gradeLevel.includes('12')) gradeValue = '12th';
+    
+    document.getElementById('reportGrade').value = gradeValue;
+    document.getElementById('reportSport').value = report.sport;
+    document.getElementById('reportInjuryDesc').value = report.injuryDescription;
+    
+    // Clear trainer assessment fields
+    document.getElementById('reportSeverity').value = 5;
+    document.getElementById('severityLabel').textContent = '5/10';
+    document.getElementById('reportRecommendation').value = '';
+    document.getElementById('referredNo').checked = true;
+    document.getElementById('reportNotes').value = '';
+    
+    // Update slider appearance
+    const percent = ((5 - 1) / 9) * 100;
+    document.getElementById('reportSeverity').style.background =
+        `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${percent}%, var(--color-border) ${percent}%, var(--color-border) 100%)`;
+    
+    // Mark as reviewed and open form
+    AppState.updateReport(reportId, { status: 'reviewed' });
+    showScreen('newReportScreen');
+    window.scrollTo(0, 0);
+}
+
+
+        function convertToFullReport(reportId) {
+            const report = AppState.reports.find(r => r.id === reportId);
+
+            // Populate form with existing data
+            document.getElementById('reportStudentName').value = report.studentName;
+            document.getElementById('reportGrade').value = report.gradeLevel.includes('9') ? '9th' : report.gradeLevel.includes('10') ? '10th' : report.gradeLevel.includes('11') ? '11th' : '12th';
+            document.getElementById('reportSport').value = report.sport;
+            document.getElementById('reportInjuryDesc').value = report.injuryDescription;
+
+            // Mark as reviewed
+            AppState.updateReport(reportId, { status: 'reviewed' });
+
+            // Switch to edit screen
+            showScreen('updateReportScreen');
+            alert('Checked in report loaded. Fill out remaining fields and save.');
+        }
+
+        // View Report Detail
+        function viewReportDetail(reportId) {
+            const report = AppState.reports.find(r => r.id === reportId);
+            const container = document.getElementById('reportDetailContent');
+
+            container.innerHTML = `
+                <div class="report-detail">
+                    <div class="report-section">
+                        <div class="report-section-title">Patient Information</div>
+                        <div class="report-field">
+                            <div class="report-field-label">Name</div>
+                            <div class="report-field-value">${report.studentName}</div>
+                        </div>
+                        <div class="report-field">
+                            <div class="report-field-label">Grade</div>
+                            <div class="report-field-value">${report.gradeLevel}</div>
+                        </div>
+                        <div class="report-field">
+                            <div class="report-field-label">Sport</div>
+                            <div class="report-field-value">${report.sport}</div>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <div class="report-section-title">Injury Details</div>
+                        <div class="report-field">
+                            <div class="report-field-label">Description</div>
+                            <div class="report-field-value">${report.injuryDescription}</div>
+                        </div>
+                        <div class="report-field">
+                            <div class="report-field-label">Severity</div>
+                            <div class="report-field-value"><strong>${report.severity}/10</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <div class="report-section-title">Trainer Assessment</div>
+                        <div class="report-field">
+                            <div class="report-field-label">Recommendation</div>
+                            <div class="report-field-value">${report.trainerRecommendation}</div>
+                        </div>
+                        <div class="report-field">
+                            <div class="report-field-label">Medical Referral</div>
+                            <div class="report-field-value">${report.referredForMedical ? '<span class="badge badge-danger">YES - Referred</span>' : '<span class="badge badge-success">No Referral</span>'}</div>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <div class="report-section-title">Notes</div>
+                        <div class="report-field">
+                            <div class="report-field-value">${report.trainerNotes || 'No additional notes'}</div>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <div class="report-section-title">Report Metadata</div>
+                        <div class="report-field">
+                            <div class="report-field-label">Created</div>
+                            <div class="report-field-value">${formatDate(report.createdAt)}</div>
+                        </div>
+                        ${report.updatedAt ? `
+                        <div class="report-field">
+                            <div class="report-field-label">Last Updated</div>
+                            <div class="report-field-value">${formatDate(report.updatedAt)}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-xl);">
+                        <button class="btn btn-primary" id="printReportBtn" style="flex: 1;">Print Report</button>
+                        <button class="btn btn-secondary" id="backToDbBtn" style="flex: 1;">Back</button>
+                    </div>
+                </div>
+            `;
+
+            showScreen('reportDetailScreen');
+
+            // FIX: Print button using window.print()
+            document.getElementById('printReportBtn').addEventListener('click', () => {
+                window.print();
+            });
+
+            document.getElementById('backToDbBtn').addEventListener('click', function() {
+                loadReportDatabase();
+                showScreen('reportDatabaseScreen');
+            });
+        }
+
+        // Player Search
+        document.getElementById('playerSearchInput').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const container = document.getElementById('playerSearchResults');
+
+            if (!query) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const results = AppState.getReportsByStudent(query);
+
+            if (results.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No reports found for this student</p></div>';
+                return;
+            }
+
+            const grouped = {};
+            results.forEach(report => {
+                if (!grouped[report.studentName]) grouped[report.studentName] = [];
+                grouped[report.studentName].push(report);
+            });
+
+            container.innerHTML = Object.entries(grouped).map(([studentName, reports]) => `
+                <div style="margin-bottom: var(--spacing-lg);">
+                    <h3 style="color: var(--color-primary); margin-bottom: var(--spacing-md);">${studentName}</h3>
+                    <div class="list">
+                        ${reports.map(report => `
+                            <div class="list-item" onclick="viewReportDetail('${report.id}')">
+                                <div class="list-item-header">
+                                    <span class="list-item-title">${report.sport}</span>
+                                    <span class="badge badge-success">Severity ${report.severity}/10</span>
+                                </div>
+                                <div class="list-item-subtitle">
+                                    <span>${report.injuryDescription.substring(0, 100)}...</span>
+                                    <span><strong>Date</strong> ${formatDate(report.createdAt)}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        });
+
+        // Injury Search
+        document.getElementById('injurySearchInput').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const container = document.getElementById('injurySearchResults');
+
+            if (!query) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const results = AppState.searchInjuries(query);
+
+            if (results.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No injuries found. Try another search term.</p></div>';
+                return;
+            }
+
+            container.innerHTML = results.map(injury => `
+                <div class="card" style="background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                    <h3 style="color: var(--color-primary); margin-bottom: var(--spacing-md);">${injury.name}</h3>
+                    <p style="color: var(--color-text-secondary); margin-bottom: var(--spacing-md);">${injury.description}</p>
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <h4 style="font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--color-success);">Recommended Exercises</h4>
+                        <ul style="padding-left: var(--spacing-lg); color: var(--color-text);">
+                            ${injury.exercises.map(ex => `<li style="margin-bottom: var(--spacing-xs);">${ex}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style="font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--color-warning);">Recommended Stretches</h4>
+                        <ul style="padding-left: var(--spacing-lg); color: var(--color-text);">
+                            ${injury.stretches.map(stretch => `<li style="margin-bottom: var(--spacing-xs);">${stretch}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
+        });
+
+        // Add Injury Button
+        document.getElementById('addInjuryBtn').addEventListener('click', function() {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'addInjuryModal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add New Injury</h3>
+                        <button class="modal-close" onclick="document.getElementById('addInjuryModal').remove()"></button>
+                    </div>
+                    <form id="addInjuryForm" style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+                        <div class="form-group">
+                            <label>Injury Name <span class="required">*</span></label>
+                            <input type="text" id="newInjuryName" placeholder="e.g., Rotator Cuff Injury" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description <span class="required">*</span></label>
+                            <textarea id="newInjuryDesc" placeholder="Describe the injury" required style="min-height: 80px;"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Exercises (one per line) <span class="required">*</span></label>
+                            <textarea id="newInjuryExercises" placeholder="Exercise 1&#10;Exercise 2&#10;Exercise 3" required style="min-height: 100px;"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Stretches (one per line) <span class="required">*</span></label>
+                            <textarea id="newInjuryStretches" placeholder="Stretch 1&#10;Stretch 2&#10;Stretch 3" required style="min-height: 100px;"></textarea>
+                        </div>
+                        <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                            <button type="submit" class="btn btn-success" style="flex: 1;">Save</button>
+                            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('addInjuryModal').remove()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.getElementById('addInjuryForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const name = document.getElementById('newInjuryName').value.trim();
+                const description = document.getElementById('newInjuryDesc').value.trim();
+                const exercisesText = document.getElementById('newInjuryExercises').value.trim();
+                const stretchesText = document.getElementById('newInjuryStretches').value.trim();
+
+                if (!name || !description || !exercisesText || !stretchesText) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+
+                const exercises = exercisesText.split('\n').map(e => e.trim()).filter(e => e);
+                const stretches = stretchesText.split('\n').map(e => e.trim()).filter(e => e);
+
+                if (exercises.length === 0 || stretches.length === 0) {
+                    alert('Please provide at least one exercise and one stretch');
+                    return;
+                }
+
+                const injuryData = {
+                    name: name,
+                    description: description,
+                    exercises: exercises,
+                    stretches: stretches
+                };
+
+                AppState.addInjury(injuryData);
+                document.getElementById('addInjuryModal').remove();
+                alert('Injury added successfully!');
+                document.getElementById('injurySearchInput').value = '';
+                document.getElementById('injurySearchResults').innerHTML = '';
+            });
+        });
+
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', goBack);
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            AppState.init();
+            showScreen('trainerMenuScreen');
+        });
     </script>
 </body>
 </html>
